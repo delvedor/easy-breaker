@@ -45,6 +45,7 @@ CircuitBreaker.prototype.run = function () {
   ++this._currentlyRunningFunctions
   this._runTicker()
   debug('Run new function')
+
   const args = new Array(arguments.length)
   for (var i = 0, len = args.length; i < len; i++) {
     args[i] = arguments[i]
@@ -70,6 +71,7 @@ CircuitBreaker.prototype.run = function () {
         this.open()
       }
       this.emit('result')
+      this._onFailure()
       return callback(new Error('Timeout'))
     }
     this.once('tick', onTick.bind(this))
@@ -133,7 +135,8 @@ CircuitBreaker.prototype.close = function () {
 }
 
 CircuitBreaker.prototype._runTicker = function () {
-  if (this._interval === null) return
+  if (this._interval !== null) return
+  debug(`Starting ticker, ticking every ${this.timeout / 2}ms`)
   this._interval = setInterval(() => {
     debug('Emit tick')
     this.emit('tick')
