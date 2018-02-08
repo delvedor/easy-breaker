@@ -82,26 +82,138 @@ test('Should call the function (error threshold)', t => {
 test('Should call the function (error timeout)', t => {
   t.plan(2)
 
-  const circuitBreaker = CircuitBreaker(longHttpCall, {
+  const circuitBreaker = CircuitBreaker(httpCall, {
     threshold: 2,
     timeout: 200,
     resetTimeout: 1000
   })
 
-  circuitBreaker.run(true, err => {
+  circuitBreaker.run(true, 1000, err => {
     t.is(err.message, 'Timeout')
     t.is(circuitBreaker._failures, 1)
   })
 })
 
-function httpCall (shouldError, callback) {
-  setTimeout(() => {
-    callback(shouldError ? new Error('kaboom') : null)
-  }, 0)
-}
+test('Should call the function (multiple error timeout - threshold)', t => {
+  t.plan(6)
 
-function longHttpCall (shouldError, callback) {
+  const circuitBreaker = CircuitBreaker(httpCall, {
+    threshold: 2,
+    timeout: 200,
+    resetTimeout: 1000
+  })
+
+  circuitBreaker.run(true, 1000, err => {
+    t.is(err.message, 'Timeout')
+    t.is(circuitBreaker._failures, 1)
+
+    circuitBreaker.run(true, 1000, err => {
+      t.is(err.message, 'Timeout')
+      t.is(circuitBreaker._failures, 2)
+
+      circuitBreaker.run(true, 1000, err => {
+        t.is(err.message, 'Circuit open')
+        t.is(circuitBreaker._failures, 2)
+      })
+    })
+  })
+})
+
+test('Half open state', t => {
+  t.plan(6)
+
+  const circuitBreaker = CircuitBreaker(httpCall, {
+    threshold: 2,
+    timeout: 200,
+    resetTimeout: 200
+  })
+
+  circuitBreaker.run(true, err => {
+    t.is(err.message, 'kaboom')
+    t.is(circuitBreaker._failures, 1)
+
+    circuitBreaker.run(true, err => {
+      t.is(err.message, 'kaboom')
+      t.is(circuitBreaker._failures, 2)
+      t.is(circuitBreaker.state, 'open')
+      setTimeout(again, 300)
+    })
+  })
+
+  function again () {
+    t.is(circuitBreaker.state, 'half-open')
+  }
+})
+
+test('Half open state, set to close on good response', t => {
+  t.plan(9)
+
+  const circuitBreaker = CircuitBreaker(httpCall, {
+    threshold: 2,
+    timeout: 200,
+    resetTimeout: 200
+  })
+
+  circuitBreaker.run(true, err => {
+    t.is(err.message, 'kaboom')
+    t.is(circuitBreaker._failures, 1)
+
+    circuitBreaker.run(true, err => {
+      t.is(err.message, 'kaboom')
+      t.is(circuitBreaker._failures, 2)
+      t.is(circuitBreaker.state, 'open')
+      setTimeout(again, 300)
+    })
+  })
+
+  function again () {
+    t.is(circuitBreaker.state, 'half-open')
+    circuitBreaker.run(false, err => {
+      t.error(err)
+      t.is(circuitBreaker._failures, 0)
+      t.is(circuitBreaker.state, 'close')
+    })
+  }
+})
+
+test('Half open state, set to open on bad response', t => {
+  t.plan(9)
+
+  const circuitBreaker = CircuitBreaker(httpCall, {
+    threshold: 2,
+    timeout: 200,
+    resetTimeout: 200
+  })
+
+  circuitBreaker.run(true, err => {
+    t.is(err.message, 'kaboom')
+    t.is(circuitBreaker._failures, 1)
+
+    circuitBreaker.run(true, err => {
+      t.is(err.message, 'kaboom')
+      t.is(circuitBreaker._failures, 2)
+      t.is(circuitBreaker.state, 'open')
+      setTimeout(again, 300)
+    })
+  })
+
+  function again () {
+    t.is(circuitBreaker.state, 'half-open')
+    circuitBreaker.run(true, err => {
+      t.is(err.message, 'kaboom')
+      t.is(circuitBreaker._failures, 2)
+      t.is(circuitBreaker.state, 'open')
+    })
+  }
+})
+
+function httpCall (shouldError, delay, callback) {
+  if (callback == null) {
+    callback = delay
+    delay = 0
+  }
+
   setTimeout(() => {
     callback(shouldError ? new Error('kaboom') : null)
-  }, 1000)
+  }, delay)
 }
