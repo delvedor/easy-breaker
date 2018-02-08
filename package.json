@@ -1,16 +1,33 @@
 {
-  "name": "circuit-breaker",
-  "version": "1.0.0",
+  "name": "easy-breaker",
+  "version": "0.1.0",
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "standard && tap test.js"
   },
-  "keywords": [],
-  "author": "Tomas Della Vedova <tommydelved@gmail.com>",
-  "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/delvedor/easy-breaker.git"
+  },
+  "keywords": [
+    "circuit breaker",
+    "breaker",
+    "easy",
+    "fast"
+  ],
+  "author": "Tomas Della Vedova - @delvedor (http://delved.org)",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/delvedor/easy-breaker/issues"
+  },
+  "homepage": "https://github.com/delvedor/easy-breaker#readme",
   "dependencies": {
     "debug": "^3.1.0",
     "once": "^1.4.0"
+  },
+  "devDependencies": {
+    "standard": "^10.0.3",
+    "tap": "^11.1.0"
   }
 }
