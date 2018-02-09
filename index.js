@@ -129,6 +129,62 @@ EasyBreaker.prototype.run = function () {
   }
 }
 
+EasyBreaker.prototype.runp = function () {
+  this._currentlyRunningFunctions++
+  this._runTicker()
+  debug('Run promise new function')
+
+  if (this.state === 'open') {
+    debug('Circuit is open, returning error')
+    const error = new CircuitOpenError()
+    this.emit('result', error)
+    return Promise.reject(error)
+  }
+
+  if (this.state === 'half-open' && this._currentlyRunningFunctions > 1) {
+    debug('Circuit is half-open and there is already a running function, returning error')
+    const error = new CircuitOpenError()
+    this.emit('result', error)
+    return Promise.reject(error)
+  }
+
+  const args = new Array(arguments.length)
+  for (var i = 0, len = args.length; i < len; i++) {
+    args[i] = arguments[i]
+  }
+
+  return new Promise((resolve, reject) => {
+    var ticks = 0
+    var gotResult = false
+    this.once('tick', onTick.bind(this))
+
+    function onTick () {
+      if (++ticks >= 3) {
+        debug('Tick timeout')
+        const error = new TimeoutError()
+        this.emit('result', error)
+        return reject(error)
+      }
+      if (gotResult === false) {
+        this.once('tick', onTick.bind(this))
+      }
+    }
+
+    this.fn.apply(this.context, args)
+      .then(val => promiseCallback(this, null, val))
+      .catch(err => promiseCallback(this, err, undefined))
+
+    function promiseCallback (context, err, result) {
+      debug('Got promise result')
+      gotResult = true
+
+      debug(err != null ? 'Result errored' : 'Successful execution')
+      context.emit('result', err)
+      err ? reject(err) : resolve(result)
+    }
+  })
+}
+
 EasyBreaker.prototype._runTicker = function () {
   /* istanbul ignore if */
   if (this._interval !== null) return
