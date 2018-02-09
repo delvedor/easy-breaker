@@ -1,3 +1,5 @@
+<img align="right" width="350" height="auto" src="https://martinfowler.com/bliki/images/circuitBreaker/state.png">
+
 # easy-breaker
 
 [![js-standard-style](https://img.shields.io/badge/code%20style-standard-brightgreen.svg?style=flat)](http://standardjs.com/)  [![Build Status](https://travis-ci.org/delvedor/easy-breaker.svg?branch=master)](https://travis-ci.org/delvedor/easy-breaker)
@@ -81,6 +83,9 @@ This circuit breaker is an event emitter, if needed you can listen to its events
 Run a timer for every function is pretty expensive, especially if you are running the code in a heavy load environment.<br/>
 To fix this problem, `EasyBreaker` uses an atomic clock, in other words uses an interval that emits a `tick` event every `timeout / 2` milliseconds.<br>
 Every running functions listens for that event and if the number of ticks received is higher than `3` it will return a `TimeoutError`.
+
+## Acknowledgements
+Image curtesy of [Martin Fowler](https://martinfowler.com/bliki/CircuitBreaker.html).
 
 <a name="license"></a>
 ## License
