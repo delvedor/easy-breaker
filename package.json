@@ -1,7 +1,7 @@
 {
   "name": "easy-breaker",
   "version": "0.1.0",
-  "description": "",
+  "description": "A simple circuit breaker utility",
   "main": "index.js",
   "scripts": {
     "coverage": "npm test -- --cov --coverage-report=html",
@@ -13,6 +13,7 @@
   },
   "keywords": [
     "circuit breaker",
+    "circuit",
     "breaker",
     "easy",
     "fast"
