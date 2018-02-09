@@ -1,2 +1,73 @@
 # easy-breaker
-A simple circuit breaker utility
+
+[![js-standard-style](https://img.shields.io/badge/code%20style-standard-brightgreen.svg?style=flat)](http://standardjs.com/)  [![Build Status](https://travis-ci.org/delvedor/easy-breaker.svg?branch=master)](https://travis-ci.org/delvedor/easy-breaker)
+
+A simple [circuit breaker](https://martinfowler.com/bliki/CircuitBreaker.html) utility.
+
+<a name="install"></a>
+## Install
+```
+npm i easy-breaker
+```
+
+<a name="usage"></a>
+## Usage
+Require the library and initialize it with the function you want to put under the Circuit Breaker.
+```js
+const EasyBreaker = require('easy-breaker')
+const simpleGet = require('simple-get')
+
+const get = EasyBreaker(simpleGet)
+
+get.run('http://example.com', function (err, res) {
+  if (err) throw err
+  console.log(res.statusCode)
+})
+```
+
+If the function times out, the error will be a `TimeoutError`.<br>
+If the threshold has been reached and the circuit is open the error will be a `CircuitOpenError`.
+
+You can access the errors constructors with `require('easy-breaker').errors`.
+
+### Options
+You can pass some custom option to change the default behavior of `EasyBreaker`:
+```js
+const EasyBreaker = require('easy-breaker')
+const simpleGet = require('simple-get')
+
+// the following options object contains the default values
+const get = EasyBreaker(simpleGet, {
+  threshold: 5
+  timeout: 1000 * 10
+  resetTimeout: 1000 * 10
+  context: null
+})
+```
+
+- `threshold`: is the maximum numbers of failures you accept to have before opening the circuit.
+- `timeout:` is the maximum number of milliseconds you can wait before return a `TimeoutError` *(read the caveats section about how the timeout is handled)*.
+- `resetTimeout`: time before the circuit will move from `open` to `half-open`
+- `context`: a custom context for the function to call
+
+
+<a name="events"></a>
+## Events
+This circuit breaker is an event emitter, if needed you can listen to its events:
+- `open`
+- `half-open`
+- `close`
+- `result`
+- `tick`
+
+<a name="caveats"></a>
+## Caveats
+Run a timer for every function is pretty expensive, especially if you are running the code in a heavy load environment.<br/>
+To fix this problem, `EasyBreaker` uses an atomic clock, in other words uses an interval that emits a `tick` event every `timeout / 2` milliseconds.<br>
+Every running functions listens for that event and if the number of ticks received is higher than `3` it will return a `TimeoutError`.
+
+<a name="license"></a>
+## License
+**[MIT](https://github.com/delvedor/easy-breaker/blob/master/LICENSE)**<br>
+
+Copyright © 2018 Tomas Della Vedova
