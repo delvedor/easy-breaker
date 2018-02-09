@@ -25,9 +25,10 @@ function EasyBreaker (fn, opts) {
 
   this.on('open', () => {
     debug('Set state to \'open\'')
+    if (this.state !== 'open') {
+      setTimeout(() => this.emit('half-open'), this.resetTimeout)
+    }
     this.state = 'open'
-
-    setTimeout(() => this.emit('half-open'), this.resetTimeout)
   })
 
   this.on('half-open', () => {
@@ -70,8 +71,6 @@ function EasyBreaker (fn, opts) {
 inherits(EasyBreaker, EE)
 
 EasyBreaker.prototype.run = function () {
-  this._currentlyRunningFunctions++
-  this._runTicker()
   debug('Run new function')
 
   const args = new Array(arguments.length)
@@ -84,18 +83,16 @@ EasyBreaker.prototype.run = function () {
 
   if (this.state === 'open') {
     debug('Circuit is open, returning error')
-    const error = new CircuitOpenError()
-    this.emit('result', error)
-    return callback(error)
+    return callback(new CircuitOpenError())
   }
 
-  if (this.state === 'half-open' && this._currentlyRunningFunctions > 1) {
+  if (this.state === 'half-open' && this._currentlyRunningFunctions >= 1) {
     debug('Circuit is half-open and there is already a running function, returning error')
-    const error = new CircuitOpenError()
-    this.emit('result', error)
-    return callback(error)
+    return callback(new CircuitOpenError())
   }
 
+  this._currentlyRunningFunctions++
+  this._runTicker()
   var ticks = 0
   var gotResult = false
   this.once('tick', onTick.bind(this))
@@ -130,28 +127,25 @@ EasyBreaker.prototype.run = function () {
 }
 
 EasyBreaker.prototype.runp = function () {
-  this._currentlyRunningFunctions++
-  this._runTicker()
   debug('Run promise new function')
 
   if (this.state === 'open') {
     debug('Circuit is open, returning error')
-    const error = new CircuitOpenError()
-    this.emit('result', error)
-    return Promise.reject(error)
+    return Promise.reject(new CircuitOpenError())
   }
 
-  if (this.state === 'half-open' && this._currentlyRunningFunctions > 1) {
+  if (this.state === 'half-open' && this._currentlyRunningFunctions >= 1) {
     debug('Circuit is half-open and there is already a running function, returning error')
-    const error = new CircuitOpenError()
-    this.emit('result', error)
-    return Promise.reject(error)
+    return Promise.reject(new CircuitOpenError())
   }
 
   const args = new Array(arguments.length)
   for (var i = 0, len = args.length; i < len; i++) {
     args[i] = arguments[i]
   }
+
+  this._currentlyRunningFunctions++
+  this._runTicker()
 
   return new Promise((resolve, reject) => {
     var ticks = 0
