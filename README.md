@@ -50,6 +50,22 @@ const get = EasyBreaker(simpleGet, {
 - `resetTimeout`: time before the circuit will move from `open` to `half-open`
 - `context`: a custom context for the function to call
 
+<a name="promises"></a>
+### Promises
+Promises and *async-await* are supported as well!<br/>
+Instead of calling `run` just call `runp` and you are done!<br/>
+*Note the if you use the promise version of the api also the function you are wrapping should return a promise*
+
+```js
+const EasyBreaker = require('easy-breaker')
+const got = require('got')
+
+const get = EasyBreaker(got)
+
+get.runp('http://example.com')
+  .then(console.log)
+  .catch(console.log)
+```
 
 <a name="events"></a>
 ## Events
