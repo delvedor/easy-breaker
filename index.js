@@ -57,7 +57,9 @@ function EasyBreaker (fn, opts) {
         }
       }
     } else {
-      this.emit('close')
+      if (this._failures > 0) {
+        this.emit('close')
+      }
     }
 
     this._currentlyRunningFunctions--
