@@ -2,54 +2,54 @@
 
 const t = require('tap')
 const test = t.test
-const CircuitBreaker = require('./index')
+const EasyBreaker = require('./index')
 
 test('Should call the function', t => {
   t.plan(2)
 
-  const circuitBreaker = CircuitBreaker(httpCall, {
+  const easyBreaker = EasyBreaker(httpCall, {
     threshold: 2,
     timeout: 1000,
     resetTimeout: 1000
   })
 
-  circuitBreaker.run(false, err => {
+  easyBreaker.run(false, err => {
     t.error(err)
-    t.is(circuitBreaker._failures, 0)
+    t.is(easyBreaker._failures, 0)
   })
 })
 
 test('Should call the function (error) / 1', t => {
   t.plan(2)
 
-  const circuitBreaker = CircuitBreaker(httpCall, {
+  const easyBreaker = EasyBreaker(httpCall, {
     threshold: 2,
     timeout: 1000,
     resetTimeout: 1000
   })
 
-  circuitBreaker.run(true, err => {
+  easyBreaker.run(true, err => {
     t.is(err.message, 'kaboom')
-    t.is(circuitBreaker._failures, 1)
+    t.is(easyBreaker._failures, 1)
   })
 })
 
 test('Should call the function (error) / 2', t => {
   t.plan(4)
 
-  const circuitBreaker = CircuitBreaker(httpCall, {
+  const easyBreaker = EasyBreaker(httpCall, {
     threshold: 2,
     timeout: 1000,
     resetTimeout: 1000
   })
 
-  circuitBreaker.run(true, err => {
+  easyBreaker.run(true, err => {
     t.is(err.message, 'kaboom')
-    t.is(circuitBreaker._failures, 1)
+    t.is(easyBreaker._failures, 1)
 
-    circuitBreaker.run(true, err => {
+    easyBreaker.run(true, err => {
       t.is(err.message, 'kaboom')
-      t.is(circuitBreaker._failures, 2)
+      t.is(easyBreaker._failures, 2)
     })
   })
 })
@@ -57,23 +57,23 @@ test('Should call the function (error) / 2', t => {
 test('Should call the function (error threshold)', t => {
   t.plan(6)
 
-  const circuitBreaker = CircuitBreaker(httpCall, {
+  const easyBreaker = EasyBreaker(httpCall, {
     threshold: 2,
     timeout: 1000,
     resetTimeout: 1000
   })
 
-  circuitBreaker.run(true, err => {
+  easyBreaker.run(true, err => {
     t.is(err.message, 'kaboom')
-    t.is(circuitBreaker._failures, 1)
+    t.is(easyBreaker._failures, 1)
 
-    circuitBreaker.run(true, err => {
+    easyBreaker.run(true, err => {
       t.is(err.message, 'kaboom')
-      t.is(circuitBreaker._failures, 2)
+      t.is(easyBreaker._failures, 2)
 
-      circuitBreaker.run(true, err => {
+      easyBreaker.run(true, err => {
         t.is(err.message, 'Circuit open')
-        t.is(circuitBreaker._failures, 2)
+        t.is(easyBreaker._failures, 2)
       })
     })
   })
@@ -82,38 +82,38 @@ test('Should call the function (error threshold)', t => {
 test('Should call the function (error timeout)', t => {
   t.plan(2)
 
-  const circuitBreaker = CircuitBreaker(httpCall, {
+  const easyBreaker = EasyBreaker(httpCall, {
     threshold: 2,
     timeout: 200,
     resetTimeout: 1000
   })
 
-  circuitBreaker.run(true, 1000, err => {
+  easyBreaker.run(true, 1000, err => {
     t.is(err.message, 'Timeout')
-    t.is(circuitBreaker._failures, 1)
+    t.is(easyBreaker._failures, 1)
   })
 })
 
 test('Should call the function (multiple error timeout - threshold)', t => {
   t.plan(6)
 
-  const circuitBreaker = CircuitBreaker(httpCall, {
+  const easyBreaker = EasyBreaker(httpCall, {
     threshold: 2,
     timeout: 200,
     resetTimeout: 1000
   })
 
-  circuitBreaker.run(true, 1000, err => {
+  easyBreaker.run(true, 1000, err => {
     t.is(err.message, 'Timeout')
-    t.is(circuitBreaker._failures, 1)
+    t.is(easyBreaker._failures, 1)
 
-    circuitBreaker.run(true, 1000, err => {
+    easyBreaker.run(true, 1000, err => {
       t.is(err.message, 'Timeout')
-      t.is(circuitBreaker._failures, 2)
+      t.is(easyBreaker._failures, 2)
 
-      circuitBreaker.run(true, 1000, err => {
+      easyBreaker.run(true, 1000, err => {
         t.is(err.message, 'Circuit open')
-        t.is(circuitBreaker._failures, 2)
+        t.is(easyBreaker._failures, 2)
       })
     })
   })
@@ -122,56 +122,56 @@ test('Should call the function (multiple error timeout - threshold)', t => {
 test('Half open state', t => {
   t.plan(6)
 
-  const circuitBreaker = CircuitBreaker(httpCall, {
+  const easyBreaker = EasyBreaker(httpCall, {
     threshold: 2,
     timeout: 200,
     resetTimeout: 200
   })
 
-  circuitBreaker.run(true, err => {
+  easyBreaker.run(true, err => {
     t.is(err.message, 'kaboom')
-    t.is(circuitBreaker._failures, 1)
+    t.is(easyBreaker._failures, 1)
 
-    circuitBreaker.run(true, err => {
+    easyBreaker.run(true, err => {
       t.is(err.message, 'kaboom')
-      t.is(circuitBreaker._failures, 2)
-      t.is(circuitBreaker.state, 'open')
+      t.is(easyBreaker._failures, 2)
+      t.is(easyBreaker.state, 'open')
       setTimeout(again, 300)
     })
   })
 
   function again () {
-    t.is(circuitBreaker.state, 'half-open')
+    t.is(easyBreaker.state, 'half-open')
   }
 })
 
 test('Half open state, set to close on good response', t => {
   t.plan(9)
 
-  const circuitBreaker = CircuitBreaker(httpCall, {
+  const easyBreaker = EasyBreaker(httpCall, {
     threshold: 2,
     timeout: 200,
     resetTimeout: 200
   })
 
-  circuitBreaker.run(true, err => {
+  easyBreaker.run(true, err => {
     t.is(err.message, 'kaboom')
-    t.is(circuitBreaker._failures, 1)
+    t.is(easyBreaker._failures, 1)
 
-    circuitBreaker.run(true, err => {
+    easyBreaker.run(true, err => {
       t.is(err.message, 'kaboom')
-      t.is(circuitBreaker._failures, 2)
-      t.is(circuitBreaker.state, 'open')
+      t.is(easyBreaker._failures, 2)
+      t.is(easyBreaker.state, 'open')
       setTimeout(again, 300)
     })
   })
 
   function again () {
-    t.is(circuitBreaker.state, 'half-open')
-    circuitBreaker.run(false, err => {
+    t.is(easyBreaker.state, 'half-open')
+    easyBreaker.run(false, err => {
       t.error(err)
-      t.is(circuitBreaker._failures, 0)
-      t.is(circuitBreaker.state, 'close')
+      t.is(easyBreaker._failures, 0)
+      t.is(easyBreaker.state, 'close')
     })
   }
 })
@@ -179,30 +179,30 @@ test('Half open state, set to close on good response', t => {
 test('Half open state, set to open on bad response', t => {
   t.plan(9)
 
-  const circuitBreaker = CircuitBreaker(httpCall, {
+  const easyBreaker = EasyBreaker(httpCall, {
     threshold: 2,
     timeout: 200,
     resetTimeout: 200
   })
 
-  circuitBreaker.run(true, err => {
+  easyBreaker.run(true, err => {
     t.is(err.message, 'kaboom')
-    t.is(circuitBreaker._failures, 1)
+    t.is(easyBreaker._failures, 1)
 
-    circuitBreaker.run(true, err => {
+    easyBreaker.run(true, err => {
       t.is(err.message, 'kaboom')
-      t.is(circuitBreaker._failures, 2)
-      t.is(circuitBreaker.state, 'open')
+      t.is(easyBreaker._failures, 2)
+      t.is(easyBreaker.state, 'open')
       setTimeout(again, 300)
     })
   })
 
   function again () {
-    t.is(circuitBreaker.state, 'half-open')
-    circuitBreaker.run(true, err => {
+    t.is(easyBreaker.state, 'half-open')
+    easyBreaker.run(true, err => {
       t.is(err.message, 'kaboom')
-      t.is(circuitBreaker._failures, 2)
-      t.is(circuitBreaker.state, 'open')
+      t.is(easyBreaker._failures, 2)
+      t.is(easyBreaker.state, 'open')
     })
   }
 })

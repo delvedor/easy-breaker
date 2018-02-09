@@ -1,6 +1,6 @@
 'use strict'
 
-const CircuitBreaker = require('./index')
+const EasyBreaker = require('./index')
 
 function httpCall (callback) {
   setTimeout(() => {
@@ -8,7 +8,7 @@ function httpCall (callback) {
   }, 500)
 }
 
-const circuit = CircuitBreaker(httpCall, { threshold: 2, timeout: 1000, resetTimeout: 1000 })
+const circuit = EasyBreaker(httpCall, { threshold: 2, timeout: 1000, resetTimeout: 1000 })
 
 circuit.on('open', () => console.log('open'))
 circuit.on('half-open', () => console.log('half-open'))

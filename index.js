@@ -3,11 +3,11 @@
 const EE = require('events').EventEmitter
 const inherits = require('util').inherits
 const once = require('once')
-const debug = require('debug')('circuit-breaker')
+const debug = require('debug')('easy-breaker')
 
-function CircuitBreaker (fn, opts) {
-  if (!(this instanceof CircuitBreaker)) {
-    return new CircuitBreaker(fn, opts)
+function EasyBreaker (fn, opts) {
+  if (!(this instanceof EasyBreaker)) {
+    return new EasyBreaker(fn, opts)
   }
 
   opts = opts || {}
@@ -27,6 +27,7 @@ function CircuitBreaker (fn, opts) {
   this.on('result', () => {
     --this._currentlyRunningFunctions
     if (this._currentlyRunningFunctions === 0) {
+      debug('There are no more running functions, stopping ticker')
       this._stopTicker()
     }
   })
@@ -39,9 +40,9 @@ function CircuitBreaker (fn, opts) {
   })
 }
 
-inherits(CircuitBreaker, EE)
+inherits(EasyBreaker, EE)
 
-CircuitBreaker.prototype.run = function () {
+EasyBreaker.prototype.run = function () {
   ++this._currentlyRunningFunctions
   this._runTicker()
   debug('Run new function')
@@ -107,7 +108,7 @@ CircuitBreaker.prototype.run = function () {
   }
 }
 
-CircuitBreaker.prototype._onFailure = function () {
+EasyBreaker.prototype._onFailure = function () {
   this._failures++
   if (this._failures >= this.threshold) {
     debug('Threshold reached, opening circuit')
@@ -115,26 +116,26 @@ CircuitBreaker.prototype._onFailure = function () {
   }
 }
 
-CircuitBreaker.prototype.open = function () {
+EasyBreaker.prototype.open = function () {
   debug('Set state to \'open\'')
   this.state = 'open'
   this.emit('open')
 }
 
-CircuitBreaker.prototype.halfOpen = function () {
+EasyBreaker.prototype.halfOpen = function () {
   debug('Set state to \'half-open\'')
   this.state = 'half-open'
   this.emit('half-open')
 }
 
-CircuitBreaker.prototype.close = function () {
+EasyBreaker.prototype.close = function () {
   debug('Set state to \'close\'')
   this._failures = 0
   this.state = 'close'
   this.emit('close')
 }
 
-CircuitBreaker.prototype._runTicker = function () {
+EasyBreaker.prototype._runTicker = function () {
   if (this._interval !== null) return
   debug(`Starting ticker, ticking every ${this.timeout / 2}ms`)
   this._interval = setInterval(() => {
@@ -143,10 +144,10 @@ CircuitBreaker.prototype._runTicker = function () {
   }, this.timeout / 2)
 }
 
-CircuitBreaker.prototype._stopTicker = function () {
+EasyBreaker.prototype._stopTicker = function () {
   if (this._interval === null) return
   clearInterval(this._interval)
   this._interval = null
 }
 
-module.exports = CircuitBreaker
+module.exports = EasyBreaker
