@@ -7,7 +7,7 @@ const EasyBreaker = require('./index')
 test('Should call the function', t => {
   t.plan(2)
 
-  const easyBreaker = EasyBreaker(httpCall, {
+  const easyBreaker = EasyBreaker(asyncOp, {
     threshold: 2,
     timeout: 1000,
     resetTimeout: 1000
@@ -22,7 +22,7 @@ test('Should call the function', t => {
 test('Should call the function (error) / 1', t => {
   t.plan(2)
 
-  const easyBreaker = EasyBreaker(httpCall, {
+  const easyBreaker = EasyBreaker(asyncOp, {
     threshold: 2,
     timeout: 1000,
     resetTimeout: 1000
@@ -37,7 +37,7 @@ test('Should call the function (error) / 1', t => {
 test('Should call the function (error) / 2', t => {
   t.plan(4)
 
-  const easyBreaker = EasyBreaker(httpCall, {
+  const easyBreaker = EasyBreaker(asyncOp, {
     threshold: 2,
     timeout: 1000,
     resetTimeout: 1000
@@ -57,7 +57,7 @@ test('Should call the function (error) / 2', t => {
 test('Should call the function (error threshold)', t => {
   t.plan(6)
 
-  const easyBreaker = EasyBreaker(httpCall, {
+  const easyBreaker = EasyBreaker(asyncOp, {
     threshold: 2,
     timeout: 1000,
     resetTimeout: 1000
@@ -82,7 +82,7 @@ test('Should call the function (error threshold)', t => {
 test('Should call the function (error timeout)', t => {
   t.plan(2)
 
-  const easyBreaker = EasyBreaker(httpCall, {
+  const easyBreaker = EasyBreaker(asyncOp, {
     threshold: 2,
     timeout: 200,
     resetTimeout: 1000
@@ -97,7 +97,7 @@ test('Should call the function (error timeout)', t => {
 test('Should call the function (multiple error timeout - threshold)', t => {
   t.plan(6)
 
-  const easyBreaker = EasyBreaker(httpCall, {
+  const easyBreaker = EasyBreaker(asyncOp, {
     threshold: 2,
     timeout: 200,
     resetTimeout: 1000
@@ -122,7 +122,7 @@ test('Should call the function (multiple error timeout - threshold)', t => {
 test('Half open state', t => {
   t.plan(6)
 
-  const easyBreaker = EasyBreaker(httpCall, {
+  const easyBreaker = EasyBreaker(asyncOp, {
     threshold: 2,
     timeout: 200,
     resetTimeout: 200
@@ -148,7 +148,7 @@ test('Half open state', t => {
 test('Half open state, set to close on good response', t => {
   t.plan(9)
 
-  const easyBreaker = EasyBreaker(httpCall, {
+  const easyBreaker = EasyBreaker(asyncOp, {
     threshold: 2,
     timeout: 200,
     resetTimeout: 200
@@ -179,7 +179,7 @@ test('Half open state, set to close on good response', t => {
 test('Half open state, set to open on bad response', t => {
   t.plan(9)
 
-  const easyBreaker = EasyBreaker(httpCall, {
+  const easyBreaker = EasyBreaker(asyncOp, {
     threshold: 2,
     timeout: 200,
     resetTimeout: 200
@@ -207,7 +207,7 @@ test('Half open state, set to open on bad response', t => {
   }
 })
 
-function httpCall (shouldError, delay, callback) {
+function asyncOp (shouldError, delay, callback) {
   if (callback == null) {
     callback = delay
     delay = 0
