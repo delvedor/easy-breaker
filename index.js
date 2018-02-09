@@ -5,9 +5,6 @@ const inherits = require('util').inherits
 const once = require('once')
 const debug = require('debug')('easy-breaker')
 
-const timeoutError = new Error('Timeout')
-const openError = new Error('Circuit open')
-
 function EasyBreaker (fn, opts) {
   if (!(this instanceof EasyBreaker)) {
     return new EasyBreaker(fn, opts)
@@ -87,14 +84,16 @@ EasyBreaker.prototype.run = function () {
 
   if (this.state === 'open') {
     debug('Circuit is open, returning error')
-    this.emit('result', openError)
-    return callback(openError)
+    const error = new CircuitOpenError()
+    this.emit('result', error)
+    return callback(error)
   }
 
   if (this.state === 'half-open' && this._currentlyRunningFunctions > 1) {
     debug('Circuit is half-open and there is already a running function, returning error')
-    this.emit('result', openError)
-    return callback(openError)
+    const error = new CircuitOpenError()
+    this.emit('result', error)
+    return callback(error)
   }
 
   var ticks = 0
@@ -104,8 +103,9 @@ EasyBreaker.prototype.run = function () {
   function onTick () {
     if (++ticks >= 3) {
       debug('Tick timeout')
-      this.emit('result', timeoutError)
-      return callback(timeoutError)
+      const error = new TimeoutError()
+      this.emit('result', error)
+      return callback(error)
     }
     if (gotResult === false) {
       this.once('tick', onTick.bind(this))
@@ -149,4 +149,23 @@ EasyBreaker.prototype._stopTicker = function () {
   debug('Stopped ticker')
 }
 
+function TimeoutError (message) {
+  Error.call(this)
+  Error.captureStackTrace(this, TimeoutError)
+  this.name = 'TimeoutError'
+  this.message = 'Timeout'
+}
+
+inherits(TimeoutError, Error)
+
+function CircuitOpenError (message) {
+  Error.call(this)
+  Error.captureStackTrace(this, TimeoutError)
+  this.name = 'CircuitOpenError'
+  this.message = 'Circuit open'
+}
+
+inherits(CircuitOpenError, Error)
+
 module.exports = EasyBreaker
+module.exports.errors = { TimeoutError, CircuitOpenError }
