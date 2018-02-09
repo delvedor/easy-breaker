@@ -208,7 +208,7 @@ test('Half open state, set to open on bad response', t => {
 })
 
 test('If the circuit is half open should run just one functions', t => {
-  t.plan(12)
+  t.plan(16)
 
   const easyBreaker = EasyBreaker(asyncOp, {
     threshold: 2,
@@ -236,11 +236,20 @@ test('If the circuit is half open should run just one functions', t => {
       t.is(easyBreaker.state, 'open')
     })
 
-    easyBreaker.run(false, err => {
+    easyBreaker.run(true, err => {
       t.is(err.message, 'Circuit open')
       t.is(easyBreaker._failures, 2)
-      t.is(easyBreaker.state, 'open')
+      t.is(easyBreaker.state, 'half-open')
     })
+
+    setTimeout(() => {
+      t.is(easyBreaker.state, 'half-open')
+      easyBreaker.run(true, err => {
+        t.is(err.message, 'kaboom')
+        t.is(easyBreaker._failures, 2)
+        t.is(easyBreaker.state, 'open')
+      })
+    }, 300)
   }
 })
 
@@ -355,7 +364,7 @@ test('Should support promises (multiple error timeout - threshold)', t => {
 })
 
 test('If the circuit is half open should run just one functions (with promises)', t => {
-  t.plan(12)
+  t.plan(16)
 
   const easyBreaker = EasyBreaker(asyncOpPromise, {
     threshold: 2,
@@ -389,13 +398,24 @@ test('If the circuit is half open should run just one functions (with promises)'
         t.is(easyBreaker.state, 'open')
       })
 
-    easyBreaker.runp(false)
+    easyBreaker.runp(true)
       .then(() => t.fail('Should fail'))
       .catch(err => {
         t.is(err.message, 'Circuit open')
         t.is(easyBreaker._failures, 2)
-        t.is(easyBreaker.state, 'open')
+        t.is(easyBreaker.state, 'half-open')
       })
+
+    setTimeout(() => {
+      t.is(easyBreaker.state, 'half-open')
+      easyBreaker.runp(true)
+        .then(() => t.fail('Should fail'))
+        .catch(err => {
+          t.is(err.message, 'kaboom')
+          t.is(easyBreaker._failures, 2)
+          t.is(easyBreaker.state, 'open')
+        })
+    }, 300)
   }
 })
 
