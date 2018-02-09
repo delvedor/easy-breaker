@@ -207,6 +207,43 @@ test('Half open state, set to open on bad response', t => {
   }
 })
 
+test('If the circuit is half open should run just one functions', t => {
+  t.plan(12)
+
+  const easyBreaker = EasyBreaker(asyncOp, {
+    threshold: 2,
+    timeout: 200,
+    resetTimeout: 200
+  })
+
+  easyBreaker.run(true, err => {
+    t.is(err.message, 'kaboom')
+    t.is(easyBreaker._failures, 1)
+
+    easyBreaker.run(true, err => {
+      t.is(err.message, 'kaboom')
+      t.is(easyBreaker._failures, 2)
+      t.is(easyBreaker.state, 'open')
+      setTimeout(again, 300)
+    })
+  })
+
+  function again () {
+    t.is(easyBreaker.state, 'half-open')
+    easyBreaker.run(true, err => {
+      t.is(err.message, 'kaboom')
+      t.is(easyBreaker._failures, 2)
+      t.is(easyBreaker.state, 'open')
+    })
+
+    easyBreaker.run(false, err => {
+      t.is(err.message, 'Circuit open')
+      t.is(easyBreaker._failures, 2)
+      t.is(easyBreaker.state, 'open')
+    })
+  }
+})
+
 function asyncOp (shouldError, delay, callback) {
   if (callback == null) {
     callback = delay

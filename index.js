@@ -130,6 +130,7 @@ EasyBreaker.prototype.run = function () {
 }
 
 EasyBreaker.prototype._runTicker = function () {
+  /* istanbul ignore if */
   if (this._interval !== null) return
 
   debug(`Starting ticker, ticking every ${this.timeout / 2}ms`)
@@ -140,6 +141,7 @@ EasyBreaker.prototype._runTicker = function () {
 }
 
 EasyBreaker.prototype._stopTicker = function () {
+  /* istanbul ignore if */
   if (this._interval === null) return
 
   clearInterval(this._interval)
