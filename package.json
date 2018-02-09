@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "coverage": "npm test -- --cov --coverage-report=html",
-    "test": "standard && tap test.js"
+    "test": "standard && tap -j4 test.js"
   },
   "repository": {
     "type": "git",
