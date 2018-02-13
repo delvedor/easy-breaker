@@ -122,27 +122,23 @@ EasyBreaker.prototype.run = function () {
   this._currentlyRunningFunctions++
   this._runTicker()
   var ticks = 0
-  var gotResult = false
-  this.once('tick', onTick.bind(this))
 
-  function onTick () {
+  const onTick = () => {
     if (++ticks >= 3) {
       debug('Tick timeout')
       const error = new TimeoutError()
       this.emit('result', error)
+      this.removeListener('tick', onTick)
       return callback(error)
-    }
-    /* istanbul ignore if */
-    if (gotResult === false) {
-      this.once('tick', onTick.bind(this))
     }
   }
 
+  this.on('tick', onTick)
   this.fn.apply(this.context, args)
 
   function wrapCallback () {
     debug('Got result')
-    gotResult = true
+    this.removeListener('tick', onTick)
 
     const args = new Array(arguments.length)
     for (var i = 0, len = args.length; i < len; i++) {
@@ -178,29 +174,25 @@ EasyBreaker.prototype.runp = function () {
 
   return new Promise((resolve, reject) => {
     var ticks = 0
-    var gotResult = false
-    this.once('tick', onTick.bind(this))
 
-    function onTick () {
+    const onTick = () => {
       if (++ticks >= 3) {
         debug('Tick timeout')
         const error = new TimeoutError()
         this.emit('result', error)
+        this.removeListener('tick', onTick)
         return reject(error)
-      }
-      /* istanbul ignore if */
-      if (gotResult === false) {
-        this.once('tick', onTick.bind(this))
       }
     }
 
+    this.on('tick', onTick)
     this.fn.apply(this.context, args)
       .then(val => promiseCallback(this, null, val))
       .catch(err => promiseCallback(this, err, undefined))
 
     function promiseCallback (context, err, result) {
       debug('Got promise result')
-      gotResult = true
+      context.removeListener('tick', onTick)
 
       debug(err != null ? 'Result errored' : 'Successful execution')
       context.emit('result', err)
