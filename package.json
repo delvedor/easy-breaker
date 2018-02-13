@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "coverage": "npm test -- --cov --coverage-report=html",
+    "coveralls": "npm test -- --cov --coverage-report=text-lcov | coveralls",
     "test": "standard && tap -j4 test.js"
   },
   "repository": {
@@ -29,6 +30,7 @@
     "once": "^1.4.0"
   },
   "devDependencies": {
+    "coveralls": "^3.0.0",
     "fastbench": "^1.0.1",
     "pre-commit": "^1.2.2",
     "standard": "^10.0.3",

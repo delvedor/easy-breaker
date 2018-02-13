@@ -2,7 +2,7 @@
 
 # easy-breaker
 
-[![js-standard-style](https://img.shields.io/badge/code%20style-standard-brightgreen.svg?style=flat)](http://standardjs.com/)  [![Build Status](https://travis-ci.org/delvedor/easy-breaker.svg?branch=master)](https://travis-ci.org/delvedor/easy-breaker)
+[![js-standard-style](https://img.shields.io/badge/code%20style-standard-brightgreen.svg?style=flat)](http://standardjs.com/)  [![Build Status](https://travis-ci.org/delvedor/easy-breaker.svg?branch=master)](https://travis-ci.org/delvedor/easy-breaker)  [![Coverage Status](https://coveralls.io/repos/github/delvedor/easy-breaker/badge.svg?branch=master)](https://coveralls.io/github/delvedor/easy-breaker?branch=master)
 
 A simple [circuit breaker](https://martinfowler.com/bliki/CircuitBreaker.html) utility.
 
@@ -31,7 +31,7 @@ If the function times out, the error will be a `TimeoutError`.<br>
 If the threshold has been reached and the circuit is open the error will be a `CircuitOpenError`.
 
 You can access the errors constructors with `require('easy-breaker').errors`.<br>
-You can access the state constants with `require('easy-breaker').states`. 
+You can access the state constants with `require('easy-breaker').states`.
 
 ### Options
 You can pass some custom option to change the default behavior of `EasyBreaker`:
