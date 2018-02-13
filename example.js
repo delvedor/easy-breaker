@@ -14,28 +14,28 @@ circuit.on('open', () => console.log('open'))
 circuit.on('half-open', () => console.log('half-open'))
 circuit.on('close', () => console.log('close'))
 
-circuit.run(err => {
+circuit(err => {
   console.log(err)
 })
 
-circuit.run(err => {
+circuit(err => {
   console.log(err)
 })
 
 setTimeout(() => {
-  circuit.run(err => {
+  circuit(err => {
     console.log(err)
   })
 }, 1000)
 
 setTimeout(() => {
-  circuit.run(err => {
+  circuit(err => {
     console.log(err)
   })
 }, 1500)
 
 setTimeout(() => {
-  circuit.run(err => {
+  circuit(err => {
     console.log(err)
   })
 }, 3500)
