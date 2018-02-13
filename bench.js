@@ -3,33 +3,41 @@
 const bench = require('fastbench')
 const EasyBreaker = require('./index')
 
-const callbackBreaker = EasyBreaker(asyncOp, { threshold: 2, maxEventListeners: 1000 })
-const promiseBreaker = EasyBreaker(asyncOpPromise, { threshold: 2, maxEventListeners: 1000 })
+const callbackBreaker = EasyBreaker(asyncOp, {
+  threshold: 2,
+  maxEventListeners: 1000
+})
+
+const promiseBreaker = EasyBreaker(asyncOpPromise, {
+  threshold: 2,
+  maxEventListeners: 1000,
+  promise: true
+})
 
 const run = bench([
   function benchCallback (done) {
-    callbackBreaker.run(false, 50, done)
+    callbackBreaker(false, 50, done)
   },
   function benchCallbackErrored (done) {
-    callbackBreaker.run(true, 50, done)
+    callbackBreaker(true, 50, done)
   },
   function benchCallbackOpen (done) {
-    callbackBreaker.run(true, 50, done)
+    callbackBreaker(true, 50, done)
   },
 
   function benchPromise (done) {
-    promiseBreaker.runp(false, 50)
+    promiseBreaker(false, 50)
       .then(done).catch(done)
   },
   function benchPromiseErrored (done) {
-    promiseBreaker.runp(true, 50)
+    promiseBreaker(true, 50)
       .then(done).catch(done)
   },
   function benchPromiseOpen (done) {
-    promiseBreaker.runp(true, 50)
+    promiseBreaker(true, 50)
       .then(done).catch(done)
   }
-], 100)
+], 500)
 
 run(run)
 
