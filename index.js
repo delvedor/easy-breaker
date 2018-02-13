@@ -5,6 +5,10 @@ const inherits = require('util').inherits
 const once = require('once')
 const debug = require('debug')('easy-breaker')
 
+const OPEN = 'open'
+const HALFOPEN = 'half-open'
+const CLOSE = 'close'
+
 function EasyBreaker (fn, opts) {
   if (!(this instanceof EasyBreaker)) {
     return new EasyBreaker(fn, opts)
@@ -17,46 +21,46 @@ function EasyBreaker (fn, opts) {
   this.timeout = opts.timeout || 1000 * 10
   this.resetTimeout = opts.resetTimeout || 1000 * 10
   this.context = opts.context || null
-  this.state = 'close' // 'close', 'open', 'half-open'
+  this.state = CLOSE // 'close', 'open', 'half-open'
 
   this._failures = 0
   this._currentlyRunningFunctions = 0
   this._interval = null
 
-  this.on('open', () => {
+  this.on(OPEN, () => {
     debug('Set state to \'open\'')
-    if (this.state !== 'open') {
-      setTimeout(() => this.emit('half-open'), this.resetTimeout)
+    if (this.state !== OPEN) {
+      setTimeout(() => this.emit(HALFOPEN), this.resetTimeout)
     }
-    this.state = 'open'
+    this.state = OPEN
   })
 
-  this.on('half-open', () => {
+  this.on(HALFOPEN, () => {
     debug('Set state to \'half-open\'')
-    this.state = 'half-open'
+    this.state = HALFOPEN
   })
 
-  this.on('close', () => {
+  this.on(CLOSE, () => {
     debug('Set state to \'close\'')
     this._failures = 0
-    this.state = 'close'
+    this.state = CLOSE
   })
 
   this.on('result', err => {
     if (err) {
-      if (this.state === 'half-open') {
+      if (this.state === HALFOPEN) {
         debug('Theere is an error and the circuit is half open, reopening')
-        this.emit('open')
-      } else if (this.state === 'close') {
+        this.emit(OPEN)
+      } else if (this.state === CLOSE) {
         this._failures++
         if (this._failures >= this.threshold) {
           debug('Threshold reached, opening circuit')
-          this.emit('open')
+          this.emit(OPEN)
         }
       }
     } else {
       if (this._failures > 0) {
-        this.emit('close')
+        this.emit(CLOSE)
       }
     }
 
@@ -81,12 +85,12 @@ EasyBreaker.prototype.run = function () {
   const callback = once(args.pop())
   args.push(wrapCallback.bind(this))
 
-  if (this.state === 'open') {
+  if (this.state === OPEN) {
     debug('Circuit is open, returning error')
     return callback(new CircuitOpenError())
   }
 
-  if (this.state === 'half-open' && this._currentlyRunningFunctions >= 1) {
+  if (this.state === HALFOPEN && this._currentlyRunningFunctions >= 1) {
     debug('Circuit is half-open and there is already a running function, returning error')
     return callback(new CircuitOpenError())
   }
@@ -129,12 +133,12 @@ EasyBreaker.prototype.run = function () {
 EasyBreaker.prototype.runp = function () {
   debug('Run promise new function')
 
-  if (this.state === 'open') {
+  if (this.state === OPEN) {
     debug('Circuit is open, returning error')
     return Promise.reject(new CircuitOpenError())
   }
 
-  if (this.state === 'half-open' && this._currentlyRunningFunctions >= 1) {
+  if (this.state === HALFOPEN && this._currentlyRunningFunctions >= 1) {
     debug('Circuit is half-open and there is already a running function, returning error')
     return Promise.reject(new CircuitOpenError())
   }
@@ -210,7 +214,7 @@ inherits(TimeoutError, Error)
 
 function CircuitOpenError (message) {
   Error.call(this)
-  Error.captureStackTrace(this, TimeoutError)
+  Error.captureStackTrace(this, CircuitOpenError)
   this.name = 'CircuitOpenError'
   this.message = 'Circuit open'
 }
@@ -219,3 +223,4 @@ inherits(CircuitOpenError, Error)
 
 module.exports = EasyBreaker
 module.exports.errors = { TimeoutError, CircuitOpenError }
+module.exports.states = { OPEN, HALFOPEN, CLOSE }

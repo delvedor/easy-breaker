@@ -30,7 +30,8 @@ get.run('http://example.com', function (err, res) {
 If the function times out, the error will be a `TimeoutError`.<br>
 If the threshold has been reached and the circuit is open the error will be a `CircuitOpenError`.
 
-You can access the errors constructors with `require('easy-breaker').errors`.
+You can access the errors constructors with `require('easy-breaker').errors`.<br>
+You can access the state constants with `require('easy-breaker').states`. 
 
 ### Options
 You can pass some custom option to change the default behavior of `EasyBreaker`:
