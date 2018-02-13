@@ -44,7 +44,8 @@ const get = EasyBreaker(simpleGet, {
   threshold: 5
   timeout: 1000 * 10
   resetTimeout: 1000 * 10
-  context: null
+  context: null,
+  maxEventListeners: 100
 })
 ```
 
@@ -52,6 +53,7 @@ const get = EasyBreaker(simpleGet, {
 - `timeout:` is the maximum number of milliseconds you can wait before return a `TimeoutError` *(read the caveats section about how the timeout is handled)*.
 - `resetTimeout`: time before the circuit will move from `open` to `half-open`
 - `context`: a custom context for the function to call
+- `maxEventListeners`: since this library relies on events, it can happen that you reach the maximum number of events listeners before the *memory leak* warn. To avoid that log, just set an higher number with this property.
 
 <a name="promises"></a>
 ### Promises

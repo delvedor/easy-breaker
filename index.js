@@ -27,6 +27,8 @@ function EasyBreaker (fn, opts) {
   this._currentlyRunningFunctions = 0
   this._interval = null
 
+  this.setMaxListeners(opts.maxEventListeners || 100)
+
   this.on(OPEN, () => {
     debug('Set state to \'open\'')
     if (this.state !== OPEN) {
@@ -49,10 +51,11 @@ function EasyBreaker (fn, opts) {
   this.on('result', err => {
     if (err) {
       if (this.state === HALFOPEN) {
-        debug('Theere is an error and the circuit is half open, reopening')
+        debug('There is an error and the circuit is half open, reopening')
         this.emit(OPEN)
       } else if (this.state === CLOSE) {
         this._failures++
+        debug('Current number of failures:', this._failures)
         if (this._failures >= this.threshold) {
           debug('Threshold reached, opening circuit')
           this.emit(OPEN)
@@ -108,6 +111,7 @@ EasyBreaker.prototype.run = function () {
       this.emit('result', error)
       return callback(error)
     }
+    /* istanbul ignore if */
     if (gotResult === false) {
       this.once('tick', onTick.bind(this))
     }
@@ -163,6 +167,7 @@ EasyBreaker.prototype.runp = function () {
         this.emit('result', error)
         return reject(error)
       }
+      /* istanbul ignore if */
       if (gotResult === false) {
         this.once('tick', onTick.bind(this))
       }
