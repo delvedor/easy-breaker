@@ -73,6 +73,27 @@ function EasyBreaker (fn, opts) {
       this._stopTicker()
     }
   })
+
+  const runner = opts.promise === true
+               ? this.runp.bind(this)
+               : this.run.bind(this)
+
+  const that = this
+  Object.defineProperties(runner, {
+    state: {
+      get: function () {
+        return that.state
+      }
+    },
+    _failures: {
+      get: function () {
+        return that._failures
+      }
+    }
+  })
+
+  runner.on = this.on.bind(this)
+  return runner
 }
 
 inherits(EasyBreaker, EE)
