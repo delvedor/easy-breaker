@@ -19,6 +19,44 @@ test('Should call the function', t => {
   })
 })
 
+test('Default options', t => {
+  t.plan(12)
+
+  const easyBreaker = EasyBreaker(asyncOp)
+
+  easyBreaker.run(true, err => {
+    t.is(err.message, 'kaboom')
+    t.is(easyBreaker._failures, 1)
+  })
+
+  easyBreaker.run(true, err => {
+    t.is(err.message, 'kaboom')
+    t.is(easyBreaker._failures, 2)
+  })
+
+  easyBreaker.run(true, err => {
+    t.is(err.message, 'kaboom')
+    t.is(easyBreaker._failures, 3)
+  })
+
+  easyBreaker.run(true, err => {
+    t.is(err.message, 'kaboom')
+    t.is(easyBreaker._failures, 4)
+  })
+
+  easyBreaker.run(true, err => {
+    t.is(err.message, 'kaboom')
+    t.is(easyBreaker._failures, 5)
+  })
+
+  setTimeout(() => {
+    easyBreaker.run(true, err => {
+      t.is(err.message, 'Circuit open')
+      t.is(easyBreaker._failures, 5)
+    })
+  }, 50)
+})
+
 test('Should call the function (error) / 1', t => {
   t.plan(2)
 
